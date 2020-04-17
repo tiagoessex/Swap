@@ -1,0 +1,16 @@
+
+go.property("type", 0)
+
+function init(self)
+	if self.type == 0 then
+		msg.post("#sprite", "play_animation", {id = hash("impact")})
+	else
+		msg.post("#sprite", "play_animation", {id = hash("nuclear")})
+	end
+end
+
+function on_message(self, message_id, message, sender)
+    if message_id == hash("animation_done") then
+        go.delete()
+    end
+end

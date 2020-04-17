@@ -1,0 +1,96 @@
+images {
+  image: "/builtins/graphics/particle_blob.png"
+}
+images {
+  image: "/main/images/platform.png"
+}
+images {
+  image: "/main/images/player.png"
+}
+images {
+  image: "/main/images/stuff1.png"
+}
+images {
+  image: "/main/images/stuff2.png"
+}
+images {
+  image: "/main/images/stuff3.png"
+}
+images {
+  image: "/main/images/stuff4.png"
+}
+images {
+  image: "/main/images/stuff5.png"
+}
+images {
+  image: "/main/images/stuff6.png"
+}
+images {
+  image: "/main/images/stuff7.png"
+}
+images {
+  image: "/main/images/live.png"
+}
+images {
+  image: "/main/images/box.png"
+}
+images {
+  image: "/main/images/close.png"
+}
+images {
+  image: "/main/images/menu.png"
+}
+images {
+  image: "/main/images/musicoff.png"
+}
+images {
+  image: "/main/images/musicon.png"
+}
+images {
+  image: "/main/images/options.png"
+}
+images {
+  image: "/main/images/soundoff.png"
+}
+images {
+  image: "/main/images/soundon.png"
+}
+images {
+  image: "/main/images/gameover.png"
+}
+images {
+  image: "/main/images/background.png"
+}
+images {
+  image: "/main/images/menupressed.png"
+}
+images {
+  image: "/main/images/musicoffpressed.png"
+}
+images {
+  image: "/main/images/musiconpressed.png"
+}
+images {
+  image: "/main/images/optionspressed.png"
+}
+images {
+  image: "/main/images/soundoffpressed.png"
+}
+images {
+  image: "/main/images/soundonpressed.png"
+}
+images {
+  image: "/main/images/buttonnormal.png"
+}
+images {
+  image: "/main/images/buttonpressed.png"
+}
+images {
+  image: "/main/images/closepressed.png"
+}
+images {
+  image: "/main/images/title.png"
+}
+margin: 0
+extrude_borders: 0
+inner_padding: 0

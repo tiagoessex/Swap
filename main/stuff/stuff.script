@@ -1,0 +1,68 @@
+
+go.property("speed", 1)	-- value from generador
+go.property("value", 0)	-- value from generador
+
+go.property("stoped", false)
+
+
+local pause = false
+
+
+local LIMIT_Y = 135
+
+local trail = true
+
+local sound = true
+
+function init(self)
+    msg.post("#sprite", "play_animation", {id = hash("stuff" .. self.value)})
+	particlefx.play("#particlefx")
+	
+	sound = go.get("controller#script", "sound")
+	
+end
+
+
+function update(self, dt)
+	pause = go.get("controller#script", "pause")
+	if pause then
+		particlefx.stop("#particlefx")
+		trail = false
+		return
+	elseif not trail and not self.stoped then
+		particlefx.play("#particlefx")
+		trail = true
+	end
+	local pos = go.get_position()
+	if pos.y > LIMIT_Y then
+		local distance = self.speed * dt
+		local direction = vmath.vector3(0,-distance,0)
+		pos = pos + direction
+		go.set_position(pos)
+	elseif self.stoped == false then
+		self.stoped = true
+		trail = false
+		msg.post("/controller", "touchdown", { x = pos.x, value = self.value, id = go.get_id() })
+		particlefx.stop("#particlefx")
+		
+		if sound then
+			msg.post("#soundtouchdown", "play_sound") --, {delay = 1, gain = 0.5})
+		end		
+	end
+end
+
+function on_message(self, message_id, message, sender)
+ 	if message_id == hash("trigger_response") then
+    	if not self.stoped then
+    		-- inform the controller on this asshole
+    	    msg.post("/controller", "impact", { x = go.get_position().x, value = self.value})    	
+    	end
+    	go.delete()    	
+  	end
+  	if message_id == hash("movebitch") then
+  		go.set_position(message.newpos)
+  	end 
+
+end
+
+

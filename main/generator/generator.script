@@ -1,0 +1,16 @@
+
+local pause = false
+
+
+
+function on_message(self, message_id, message, sender)
+	 if message_id == hash("generate") then
+	    pause = go.get("controller#script", "pause")
+    	if not pause then
+			local component = "#factory"
+			factory.create(component, message.pos, nil, {speed = message.speed, value = message.value})
+	 	end
+	 end
+end
+
+

@@ -1,0 +1,73 @@
+function init(self)
+    self.level = gui.get_node("level_value")
+    self.score = gui.get_node("score_value")
+    self.hiscore = gui.get_node("hiscore_value")
+
+	msg.post(".", "acquire_input_focus")
+end
+
+function final(self)
+    msg.post(".", "release_input_focus")
+end
+
+
+function on_message(self, message_id, message, sender)
+
+	if message_id == hash("showhelp") then
+		gui.set_enabled(gui.get_node("infotop"), true)
+		gui.set_enabled(gui.get_node("infobottom"), true)
+	end
+	
+	if message_id == hash("hidehelp") then
+		gui.set_enabled(gui.get_node("infotop"), false)
+		gui.set_enabled(gui.get_node("infobottom"), false)
+	end
+
+	if message_id == hash("score") then
+		gui.set_text(self.score, message.newscore)
+	end
+	
+	if message_id == hash("level") then
+		gui.set_text(self.level, message.newlevel)
+	end
+	
+	if message_id == hash("highscore") then
+		gui.set_text(self.hiscore, message.newhighscore)
+	end
+	
+	if message_id == hash("newhighscore") then
+		gui.set_color(self.hiscore, vmath.vector3(1,1,0))
+	end
+	
+	if message_id == hash("lives") then
+		for i=1, 5 do
+			if i <= message.newlives then
+				gui.set_enabled(gui.get_node("live_" .. i), true)
+			else
+				gui.set_enabled(gui.get_node("live_" .. i), false)
+			end
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	if action_id == hash("click") and action.pressed then 
+		
+		msg.post("/controller", "playclick")
+	
+        if gui.pick_node(gui.get_node("options"), action.x, action.y) then
+        	msg.post("/controller", "show_options_menu")
+        	
+        	msg.post("/controller", "playdialog")
+        	
+        end
+	end
+	--[[
+	if gui.pick_node(gui.get_node("options"), action.x, action.y) then
+		gui.play_flipbook(gui.get_node("options"), hash("optionspressed"))
+	else	
+		gui.play_flipbook(gui.get_node("options"), hash("options"))
+	end
+	--]]
+end
+

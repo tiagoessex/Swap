@@ -1,0 +1,4 @@
+font: "/main/fonts/zephyrea.ttf"
+material: "/builtins/fonts/font.material"
+size: 32
+outline_width: 5.0

@@ -1,0 +1,388 @@
+
+go.property("pause", false)
+go.property("gameover", false)
+
+go.property("sound", true)
+go.property("music", true)
+
+local BOARD = {}
+local NULL = "nil"	-- replace at the end by nil
+local DELTA = 105
+local NUMBERPIECES = 4
+
+local SCORE_HIT = 50
+local SCORE_TOUCHDOWN = 10
+
+local MAX_SPEED = 170	-- max speed
+local LOWER_SPEED = 130	--200
+local DELTA_SPEED = 3	-- level inc => speed inc
+
+local DELTA_LEVEL = 15	-- after this number of pieces inc level
+local DELTA_LIVES = 50	-- after this number of pieces inc live 
+
+local MAX_LIVES = 5
+
+local EXPLOSIONS_Y = 170
+local SMOKE_Y = 130
+
+local MAX_CREATION_TIME = 3.7
+local MIN_CREATION_TIME = 1.5
+local DELTA_CREATION = 0.1
+
+local creation_delta = MAX_CREATION_TIME -- seconds
+local delta_t = creation_delta
+
+local delta_l = 0
+
+local delta_live = 0
+
+local linear_velocity = 0
+
+local score = 0
+local level = 1
+
+local lives = 0
+
+local highscore = 0
+local newhigh = false
+local gamedata = {}
+local file_path = sys.get_save_file("swapper", "gamedata")
+
+local showhelp = false
+local time_showing_help = MAX_CREATION_TIME
+
+
+local function getIndex(x_coord)
+	local index = 7
+    if x_coord < 120 then
+   		index = 1
+    elseif x_coord < 220 then
+    	index = 2
+    elseif x_coord < 320 then
+    	index = 3
+    elseif x_coord < 420 then
+    	index = 4
+    elseif x_coord < 520 then
+    	index = 5
+    elseif x_coord < 620 then
+    	index = 6
+    end
+    
+    return index
+end
+
+
+local function getX(index)
+	return 84 + (index - 1) * DELTA
+end
+
+local function updateScore(howmuch, reset)
+	if reset then
+		score = 0
+	else
+		score = score + howmuch
+	end
+    msg.post("/gamegui#gui", "score", {newscore = score})
+    if score > highscore then 
+    	msg.post("/gamegui#gui", "highscore", {newhighscore = score})
+    	if not newhigh then
+    		newhigh = true
+    		msg.post("/gamegui#gui", "newhighscore")  		
+    		msg.post("", "highscore")
+    	end
+    end
+end
+
+local function updateLevel(howmuch, reset)
+	if reset then
+		level = 1
+		creation_delta = MAX_CREATION_TIME
+		linear_velocity = LOWER_SPEED
+	else
+		level = level + howmuch
+		msg.post("", "levelup")
+		
+		linear_velocity = linear_velocity + DELTA_SPEED
+		if linear_velocity > MAX_SPEED then
+			linear_velocity = MAX_SPEED
+		end
+		creation_delta = creation_delta - DELTA_CREATION
+		if creation_delta < MIN_CREATION_TIME then
+			creation_delta = MIN_CREATION_TIME
+		end
+		
+	--	print ("-------------------------------")
+    --	print ("new speed > " .. linear_velocity)
+    --	print ("new generation speed > " .. creation_delta)
+		
+	end
+    msg.post("/gamegui#gui", "level", {newlevel = level})
+end
+
+local function updateLives(howmuch, reset)
+	if reset then
+		lives = MAX_LIVES
+	else
+		lives = lives + howmuch
+		msg.post("", "livesup")
+	end
+    msg.post("/gamegui#gui", "lives", {newlives = lives})
+end
+
+
+local function restart()
+
+ 	-- init shits
+    BOARD[1] = {0, NULL}
+    BOARD[2] = {0, NULL}
+    BOARD[3] = {0, NULL}
+    BOARD[4] = {0, NULL}
+    BOARD[5] = {0, NULL}
+    BOARD[6] = {0, NULL}
+    BOARD[7] = {0, NULL}
+    
+	linear_velocity = LOWER_SPEED
+	creation_delta = MAX_CREATION_TIME
+	delta_t = creation_delta
+	delta_l = 0
+	
+	updateScore(0, true)
+	updateLevel(1, true)
+	updateLives(0,true)
+		
+	game_data= sys.load(file_path)
+	if #game_data == 0 then
+		highscore = 0
+		showhelp = true
+	else
+		highscore = game_data[1]
+		showhelp = false -- game_data[2]		
+	end
+	
+		
+	newhigh = false
+	msg.post("/gamegui#gui", "highscore", {newhighscore = highscore})
+end
+
+local function hide_screen(url)
+	if url then
+		msg.post(url, "hide")
+	end
+end
+
+-- show a screen and hide the previously shown screen if one existed
+local function show_screen(self, url, message)
+	hide_screen(self.current_screen)
+	self.current_screen = url
+	msg.post(self.current_screen, "show", message or {})
+end
+
+
+
+
+function init(self)
+
+	hide_screen("optionsmenu")
+	hide_screen("gameover")
+
+    math.randomseed(os.time() - os.clock()*1000)
+    math.random(1); math.random(1); math.random(1)
+    
+    restart()
+        
+    self.music = true
+    self.sound = true
+
+	if showhelp then
+		msg.post("/gamegui#gui", "showhelp")
+		delta_t = 0
+	else
+		delta_t = creation_delta
+		msg.post("/gamegui#gui", "hidehelp")
+	end
+
+end
+
+
+
+function final(self)
+	if newhigh then
+		table.insert(gamedata, 1, score)		
+	else
+		table.insert(gamedata, 1, highscore)
+	end
+	table.insert(gamedata, 2, showhelp)
+	sys.save(file_path, gamedata)
+end
+
+function update(self, dt)
+	if self.pause then
+		return
+	end
+    delta_t = delta_t + dt
+    if delta_t > creation_delta then
+    	local where = vmath.vector3(getX(math.random(7)),650,0)
+    	msg.post("/generator", "generate", {pos = where, speed = linear_velocity, value = math.random(NUMBERPIECES)})
+    	delta_t = 0
+    	delta_l = delta_l + 1
+    	delta_live = delta_live + 1
+    	if delta_l >= DELTA_LEVEL then
+    		updateLevel(1, false)
+    		delta_l = 0    		
+    	end
+	    if delta_live > DELTA_LIVES then
+   			updateLives(1, false)
+   			delta_live = 0
+   			print ("+live")
+     	end
+     end
+     
+     if showhelp then
+     	time_showing_help = time_showing_help - dt
+     	if time_showing_help < 0 then
+     		showhelp = false
+     		msg.post("/gamegui#gui", "hidehelp")
+     	end
+     end
+     
+end
+
+
+function on_message(self, message_id, message, sender)
+    if message_id == hash("touchdown") then
+    	BOARD[getIndex(message.x)] = {message.value, message.id}
+    	updateScore(SCORE_TOUCHDOWN, false)
+    	
+    	local component = "#dustFactory"
+		factory.create(component, vmath.vector3(message.x,SMOKE_Y,0))--, nil, {type = 0}, vmath.vector3(2,2,2))
+  	
+    end
+    
+    if message_id == hash("getoutofhere") then
+    	msg.post("", "show_options_menu")
+    end
+    
+    
+    
+     if message_id == hash("impact") then
+    	-- check if impacted with same type or not
+    	if BOARD[getIndex(message.x)][1] == message.value then
+    		updateScore(SCORE_HIT, false)
+    		
+    		local component = "#explosionsFactory"
+			factory.create(component, vmath.vector3(message.x,EXPLOSIONS_Y,0), nil, {type = 1}, vmath.vector3(2,2,2))
+			
+			if self.sound then
+				msg.post("#soundnuclear", "play_sound") --, {delay = 1, gain = 0.5})
+			end
+			
+    	else
+    		updateLives(-1,false)
+    		if (lives <= 0) then
+    			show_screen(self, msg.url("gameover"))
+				self.pause = true
+				self.gameover = true
+				
+				if self.music then
+					msg.post("#soundmusic", "stop_sound") --, {delay = 1, gain = 0.5})
+				end
+				
+				if self.sound then
+					msg.post("#soundgameover", "play_sound") --, {delay = 1, gain = 0.5})
+				end
+			end
+			
+			local component = "#explosionsFactory"
+			factory.create(component, vmath.vector3(message.x,EXPLOSIONS_Y,0), nil, {type = 0}, vmath.vector3(2,2,2))
+			
+			if self.sound then
+				msg.post("#soundimpact", "play_sound") --, {delay = 1, gain = 0.5})
+			end
+			
+    	end
+    	BOARD[getIndex(message.x)] = {0, NULL}
+    end
+    
+    if message_id == hash("swap") then
+    	local index = message.index + 1
+    	local pos_left = vmath.vector3(getX(index), 135 ,0)
+    	local pos_right = vmath.vector3(getX(index + 1), 135 ,0)
+    	if BOARD[index][1] > 0 then
+    		pos_left = go.get_position(msg.url( BOARD[index][2])) 
+    	else
+    		
+    	end
+    	if BOARD[index+1][1] > 0 then
+    		pos_right = go.get_position(msg.url( BOARD[index+1][2]))
+    	else
+    	
+    	end
+    	
+    	if BOARD[index][1] ~= 0 then
+    		msg.post(msg.url( BOARD[index][2]), "movebitch", { newpos = pos_right})
+    	end
+    	if BOARD[index + 1][1] ~= 0 then
+    		msg.post(msg.url( BOARD[index + 1][2]), "movebitch", { newpos = pos_left})
+    	end
+    	
+    	local temp = BOARD[index+1]
+    	BOARD[index+1] = BOARD[index]
+    	BOARD[index] = temp
+    	
+    end
+    
+    
+   	if message_id == hash("show_options_menu") and not self.gameover then
+		show_screen(self, msg.url("optionsmenu"))
+		msg.post("optionsmenu", "audio", { sound = self.sound, music = self.music })
+		self.pause = true
+	elseif message_id == hash("hide_options_menu") then
+		hide_screen(msg.url("optionsmenu"))
+		self.pause = false
+	end
+	
+	if message_id == hash("audio") then
+		self.sound = message.sound
+		self.music = message.music
+		--print ("GAME AUDIO SET")
+		msg.post("main:/loader","music", {music = self.music})
+		msg.post("main:/loader","sound", {sound = self.sound})	
+		
+		if self.music then
+			msg.post("#soundmusic", "play_sound") --, {delay = 1, gain = 0.5})
+		else
+			msg.post("#soundmusic", "stop_sound")
+		end		
+    end
+    
+    if message_id == hash("levelup") then
+    	if self.sound then
+			msg.post("#soundlevelup", "play_sound") --, {delay = 1, gain = 0.5})
+		end
+	end
+	
+	if message_id == hash("livesup") then
+    	if self.sound then
+			msg.post("#soundlivesup", "play_sound") --, {delay = 1, gain = 0.5})
+		end
+	end
+	
+	if message_id == hash("highscore") then
+    	if self.sound then
+			msg.post("#soundhighscore", "play_sound") --, {delay = 1, gain = 0.5})
+		end
+	end
+	
+	if message_id == hash("playclick") then
+		if self.sound then
+			msg.post("#soundclick", "play_sound") --, {delay = 1, gain = 0.5})
+		end
+	end
+    if message_id == hash("playdialog") then
+		if self.sound then
+			msg.post("#sounddialog", "play_sound") --, {delay = 1, gain = 0.5})
+		end
+	end
+end
+
+

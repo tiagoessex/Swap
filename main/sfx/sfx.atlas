@@ -1,0 +1,86 @@
+images {
+  image: "/builtins/graphics/particle_blob.png"
+}
+images {
+  image: "/main/images/smoke.png"
+}
+images {
+  image: "/main/images/ray.png"
+}
+animations {
+  id: "nuclear"
+  images {
+    image: "/main/images/0.png"
+  }
+  images {
+    image: "/main/images/1.png"
+  }
+  images {
+    image: "/main/images/2.png"
+  }
+  images {
+    image: "/main/images/3.png"
+  }
+  images {
+    image: "/main/images/4.png"
+  }
+  images {
+    image: "/main/images/5.png"
+  }
+  images {
+    image: "/main/images/6.png"
+  }
+  images {
+    image: "/main/images/7.png"
+  }
+  images {
+    image: "/main/images/exp_8.png"
+  }
+  images {
+    image: "/main/images/exp_9.png"
+  }
+  images {
+    image: "/main/images/exp_10.png"
+  }
+  images {
+    image: "/main/images/exp_11.png"
+  }
+  playback: PLAYBACK_ONCE_FORWARD
+  fps: 15
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "impact"
+  images {
+    image: "/main/images/0.png"
+  }
+  images {
+    image: "/main/images/1.png"
+  }
+  images {
+    image: "/main/images/2.png"
+  }
+  images {
+    image: "/main/images/3.png"
+  }
+  images {
+    image: "/main/images/4.png"
+  }
+  images {
+    image: "/main/images/5.png"
+  }
+  images {
+    image: "/main/images/6.png"
+  }
+  images {
+    image: "/main/images/7.png"
+  }
+  playback: PLAYBACK_ONCE_FORWARD
+  fps: 15
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+margin: 0
+extrude_borders: 0
+inner_padding: 0

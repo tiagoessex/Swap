@@ -1,0 +1,44 @@
+
+local world = "manimenu:/mainmenu#gui"
+
+function init(self)
+	self.music = true
+    self.sound = true
+    
+    msg.post("loader#mainmenuproxy", "load")
+    msg.post(".", "acquire_input_focus")
+    
+end
+
+function final(self)
+    msg.post(".", "release_input_focus")
+end
+
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("proxy_loaded") then
+        -- New world is loaded. Init and enable it.
+        msg.post(sender, "init")
+        msg.post(sender, "enable")
+		msg.post(world, "audio", { sound = self.sound, music = self.music })
+    elseif message_id == hash("getthefuckout") then
+		msg.post("@system:", "exit", {code = 0})
+	elseif message_id == hash("loadthefuckinggame") then
+		world = "game:/controller#script"
+		msg.post("loader#gameproxy", "load")
+		msg.post("loader#mainmenuproxy", "unload")		
+	elseif message_id == hash("loadthefuckingmenu") then
+		world = "manimenu:/mainmenu#gui"
+		msg.post("loader#mainmenuproxy", "load")
+		msg.post("loader#gameproxy", "unload")		
+		
+    end
+
+	if message_id == hash("sound") then
+		self.sound = message.sound
+	end
+	if message_id == hash("music") then
+		self.music = message.music
+	end
+end
+
